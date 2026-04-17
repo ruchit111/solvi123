@@ -1069,6 +1069,9 @@ function App() {
                         </div>
                       </section>
                     ))}
+                  </div>
+                </article>
+              ))}
               {statusMessage ? <p className="text-[12px] text-stone-500">{statusMessage}</p> : null}
             </div>
           </div>
@@ -1357,8 +1360,6 @@ function App() {
           </div>
         </div>
       </footer>
-        </>
-      )
     </div>
   )
 }

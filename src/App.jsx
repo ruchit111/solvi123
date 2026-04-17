@@ -753,28 +753,26 @@ function App() {
         </>
       ) : (
         <main className="mx-auto w-full max-w-[1280px] px-6 pb-[25vh] pt-[12vh] sm:px-10 lg:px-16">
-        {/* The welcome/auth overlay appears on top of the home page until dismissed. */}
-        <WelcomeSignupOverlay
-          step={overlayStep}
-          email={overlayEmail}
-          message={overlayMessage}
-          signupForm={signupForm}
-          loginForm={loginForm}
-          authMessage={authMessage}
-          onEmailChange={setOverlayEmail}
-          onExplore={handleOverlayExplore}
-          onClose={handleOverlayClose}
-          onNewsletterSubmit={handleOverlaySignupSubmit}
-          onSignupFieldChange={handleSignupFormChange}
-          onSignupSubmit={handleAccountSignupSubmit}
-          onLoginFieldChange={handleLoginFormChange}
-          onLoginSubmit={handleLoginSubmit}
-          onStepChange={handleAuthStepChange}
-        main/>
+          {/* The welcome/auth overlay appears on top of the home page until dismissed. */}
+          <WelcomeSignupOverlay
+            step={overlayStep}
+            email={overlayEmail}
+            message={overlayMessage}
+            signupForm={signupForm}
+            loginForm={loginForm}
+            authMessage={authMessage}
+            onEmailChange={setOverlayEmail}
+            onExplore={handleOverlayExplore}
+            onClose={handleOverlayClose}
+            onNewsletterSubmit={handleOverlaySignupSubmit}
+            onSignupFieldChange={handleSignupFormChange}
+            onSignupSubmit={handleAccountSignupSubmit}
+            onLoginFieldChange={handleLoginFormChange}
+            onLoginSubmit={handleLoginSubmit}
+            onStepChange={handleAuthStepChange}
+          />
 
-        </main>
-
-        {/* Hero section introducing the customization experience. */}
+          {/* Hero section introducing the customization experience. */}
         <section
           id="customize"
           className="grid min-h-[calc(100vh-37vh)] scroll-mt-[12vh] border-x border-b border-stone-200 bg-white lg:grid-cols-[1.65fr_0.95fr]"

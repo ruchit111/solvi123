@@ -290,20 +290,39 @@ const footerColumns = [
 
 
 // Route paths used by the small client-side navigation logic.
-const HOME_PATH = '/'
-const CONTACT_PATH = '/contact-us'
-const COLLECTIONS_PATH = '/collections'
+const BASE_PATH = import.meta.env.BASE_URL || '/'
+const HOME_PATH = BASE_PATH === '/' ? '/' : BASE_PATH.replace(/\/$/, '')
+const CONTACT_PATH = `${HOME_PATH}/contact-us`
+const COLLECTIONS_PATH = `${HOME_PATH}/collections`
+
+// Helper function to get relative path for history API
+const getFullPath = (path) => {
+  if (BASE_PATH === '/') return path
+  return `${BASE_PATH}${path}`.replace(/\/\//g, '/')
+}
+
+// Helper function to extract relative path from full pathname
+const getRelativePath = (pathname) => {
+  if (BASE_PATH === '/') return pathname
+  if (pathname.startsWith(BASE_PATH)) {
+    return pathname.slice(BASE_PATH.length - 1) || '/'
+  }
+  return pathname
+}
 
 function App() {
   // Component state for page navigation, overlays, account forms, and status messages.
   const [activeStep, setActiveStep] = useState(steps[2])
-  const [currentPath, setCurrentPath] = useState(() =>
-    window.location.pathname === CONTACT_PATH
-      ? CONTACT_PATH
-      : window.location.pathname === COLLECTIONS_PATH
-        ? COLLECTIONS_PATH
-        : HOME_PATH,
-  )
+  const [currentPath, setCurrentPath] = useState(() => {
+    const relativePath = getRelativePath(window.location.pathname)
+    if (relativePath === '/contact-us' || relativePath === `${HOME_PATH}/contact-us`) {
+      return CONTACT_PATH
+    }
+    if (relativePath === '/collections' || relativePath === `${HOME_PATH}/collections`) {
+      return COLLECTIONS_PATH
+    }
+    return HOME_PATH
+  })
   const [pendingSection, setPendingSection] = useState(null)
   const [overlayStep, setOverlayStep] = useState('welcome')
   const [signupEmail, setSignupEmail] = useState('')
@@ -348,10 +367,11 @@ function App() {
   // Keeps the UI in sync when the user navigates with the browser back/forward buttons.
   useEffect(() => {
     const handlePopState = () => {
+      const relativePath = getRelativePath(window.location.pathname)
       setCurrentPath(
-        window.location.pathname === CONTACT_PATH
+        relativePath === '/contact-us' || relativePath === `${HOME_PATH}/contact-us`
           ? CONTACT_PATH
-          : window.location.pathname === COLLECTIONS_PATH
+          : relativePath === '/collections' || relativePath === `${HOME_PATH}/collections`
             ? COLLECTIONS_PATH
             : HOME_PATH,
       )
@@ -427,8 +447,9 @@ function App() {
 
   // Changes the visible route and resets the page scroll position.
   const navigateToPath = (path) => {
-    if (window.location.pathname !== path) {
-      window.history.pushState({}, '', path)
+    const fullPath = getFullPath(path === CONTACT_PATH ? '/contact-us' : path === COLLECTIONS_PATH ? '/collections' : '/')
+    if (window.location.pathname !== fullPath) {
+      window.history.pushState({}, '', fullPath)
     }
 
     setCurrentPath(path)

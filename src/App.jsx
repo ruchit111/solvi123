@@ -749,12 +749,10 @@ function App() {
       ) : isCollectionsPage ? (
         <>
           {/* Render the standalone collections page when that route is active. */}
-        <CollectionPage onNavigate={scrollToSection} />
+          <CollectionPage onNavigate={scrollToSection} />
         </>
-      )
-      
-      {/* Render the home page layout when no secondary page route is active. */}
-      <main className="mx-auto w-full max-w-[1280px] px-6 pb-[25vh] pt-[12vh] sm:px-10 lg:px-16">
+      ) : (
+        <main className="mx-auto w-full max-w-[1280px] px-6 pb-[25vh] pt-[12vh] sm:px-10 lg:px-16">
         {/* The welcome/auth overlay appears on top of the home page until dismissed. */}
         <WelcomeSignupOverlay
           step={overlayStep}
@@ -1015,14 +1013,12 @@ function App() {
 
                   <div className="px-5 lg:px-6">
                     {order.items.map((item, index) => (
-                      
-                      <section>
+                      <section
                         key={item.id}
                         className={`py-6 ${
                           index !== order.items.length - 1 ? 'border-b border-stone-200' : ''
                         }`}
-                      
-                        
+                      >
                         <div className="grid gap-5 md:grid-cols-[112px_minmax(0,1fr)_95px]">
                           <div className="h-[148px] w-[112px] overflow-hidden bg-[#f7f5f2]">
                             <img
@@ -1073,12 +1069,12 @@ function App() {
                             </button>
                           </div>
                         </div>
-              ))}
+                      </section>
+                    ))}
               {statusMessage ? <p className="text-[12px] text-stone-500">{statusMessage}</p> : null}
             </div>
           </div>
         </section>
-  </div>                
 
         {/* Address book section with saved addresses and a new-address form. */}
         <section
@@ -1313,7 +1309,7 @@ function App() {
           </div>
         </section>
       </main>
-
+      )}
 
       {/* Fixed footer with quick links and newsletter signup. */}
       <footer
@@ -1369,4 +1365,4 @@ function App() {
   )
 }
 
-export default app
+export default App

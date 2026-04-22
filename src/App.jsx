@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react'
 import Navbar from './Navbar'
 import ContactPage from './ContactPage'
 import CollectionPage from './CollectionPage'
+import Diamond from './Diamond'
+import Customize from './Customize'
+import AboutUs from './AboutUs'
 import WelcomeSignupOverlay from './WelcomeSignupOverlay'
 
 // Steps used in the customization flow sidebar.
@@ -294,6 +297,9 @@ const BASE_PATH = import.meta.env.BASE_URL || '/'
 const HOME_PATH = BASE_PATH === '/' ? '/' : BASE_PATH.replace(/\/$/, '')
 const CONTACT_PATH = `${HOME_PATH}/contact-us`
 const COLLECTIONS_PATH = `${HOME_PATH}/collections`
+const DIAMONDS_PATH = `${HOME_PATH}/diamonds`
+const CUSTOMIZE_PATH = `${HOME_PATH}/customize`
+const ABOUT_PATH = `${HOME_PATH}/about`
 
 // Helper function to get relative path for history API
 const getFullPath = (path) => {
@@ -320,6 +326,15 @@ function App() {
     }
     if (relativePath === '/collections' || relativePath === `${HOME_PATH}/collections`) {
       return COLLECTIONS_PATH
+    }
+    if (relativePath === '/diamonds' || relativePath === `${HOME_PATH}/diamonds`) {
+      return DIAMONDS_PATH
+    }
+    if (relativePath === '/customize' || relativePath === `${HOME_PATH}/customize`) {
+      return CUSTOMIZE_PATH
+    }
+    if (relativePath === '/about' || relativePath === `${HOME_PATH}/about`) {
+      return ABOUT_PATH
     }
     return HOME_PATH
   })
@@ -368,13 +383,19 @@ function App() {
   useEffect(() => {
     const handlePopState = () => {
       const relativePath = getRelativePath(window.location.pathname)
-      setCurrentPath(
-        relativePath === '/contact-us' || relativePath === `${HOME_PATH}/contact-us`
-          ? CONTACT_PATH
-          : relativePath === '/collections' || relativePath === `${HOME_PATH}/collections`
-            ? COLLECTIONS_PATH
-            : HOME_PATH,
-      )
+      if (relativePath === '/contact-us' || relativePath === `${HOME_PATH}/contact-us`) {
+        setCurrentPath(CONTACT_PATH)
+      } else if (relativePath === '/collections' || relativePath === `${HOME_PATH}/collections`) {
+        setCurrentPath(COLLECTIONS_PATH)
+      } else if (relativePath === '/diamonds' || relativePath === `${HOME_PATH}/diamonds`) {
+        setCurrentPath(DIAMONDS_PATH)
+      } else if (relativePath === '/customize' || relativePath === `${HOME_PATH}/customize`) {
+        setCurrentPath(CUSTOMIZE_PATH)
+      } else if (relativePath === '/about' || relativePath === `${HOME_PATH}/about`) {
+        setCurrentPath(ABOUT_PATH)
+      } else {
+        setCurrentPath(HOME_PATH)
+      }
     }
 
     window.addEventListener('popstate', handlePopState)
@@ -447,7 +468,14 @@ function App() {
 
   // Changes the visible route and resets the page scroll position.
   const navigateToPath = (path) => {
-    const fullPath = getFullPath(path === CONTACT_PATH ? '/contact-us' : path === COLLECTIONS_PATH ? '/collections' : '/')
+    const pathMap = {
+      [CONTACT_PATH]: '/contact-us',
+      [COLLECTIONS_PATH]: '/collections',
+      [DIAMONDS_PATH]: '/diamonds',
+      [CUSTOMIZE_PATH]: '/customize',
+      [ABOUT_PATH]: '/about',
+    }
+    const fullPath = getFullPath(pathMap[path] || '/')
     if (window.location.pathname !== fullPath) {
       window.history.pushState({}, '', fullPath)
     }
@@ -465,6 +493,21 @@ function App() {
 
     if (sectionId === 'collections-page') {
       navigateToPath(COLLECTIONS_PATH)
+      return
+    }
+
+    if (sectionId === 'diamonds-page') {
+      navigateToPath(DIAMONDS_PATH)
+      return
+    }
+
+    if (sectionId === 'customize-page') {
+      navigateToPath(CUSTOMIZE_PATH)
+      return
+    }
+
+    if (sectionId === 'about-page') {
+      navigateToPath(ABOUT_PATH)
       return
     }
 
@@ -749,6 +792,9 @@ function App() {
   // These flags decide which top-level page view should be rendered.
   const isContactPage = currentPath === CONTACT_PATH
   const isCollectionsPage = currentPath === COLLECTIONS_PATH
+  const isDiamondsPage = currentPath === DIAMONDS_PATH
+  const isCustomizePage = currentPath === CUSTOMIZE_PATH
+  const isAboutPage = currentPath === ABOUT_PATH
 
   // Main render: shows the contact page, collection page, or the home page sections.
   return (
@@ -770,8 +816,19 @@ function App() {
       ) : isCollectionsPage ? (
         <>
           {/* Render the standalone collections page when that route is active. */}
-          <CollectionPage onNavigate={scrollToSection} />
+          <CollectionPage onNavigate={scrollToSection} cartItems={[]} onAddToCart={() => {}} />
         </>
+      ) : isDiamondsPage ? (
+        <Diamond
+          cartItems={[]}
+          onAddToCart={() => {}}
+          onCheckout={() => {}}
+          onNavigate={scrollToSection}
+        />
+      ) : isCustomizePage ? (
+        <Customize onNavigate={scrollToSection} />
+      ) : isAboutPage ? (
+        <AboutUs onNavigate={scrollToSection} />
       ) : (
         <main className="mx-auto w-full max-w-[1280px] px-6 pb-[25vh] pt-[12vh] sm:px-10 lg:px-16">
           {/* The welcome/auth overlay appears on top of the home page until dismissed. */}

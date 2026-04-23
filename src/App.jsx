@@ -5,6 +5,7 @@ import CollectionPage from './CollectionPage'
 import Diamond from './Diamond'
 import Customize from './Customize'
 import AboutUs from './AboutUs'
+import Checkout from './Checkout'
 import WelcomeSignupOverlay from './WelcomeSignupOverlay'
 
 // Steps used in the customization flow sidebar.
@@ -300,6 +301,13 @@ const COLLECTIONS_PATH = `${HOME_PATH}/collections`
 const DIAMONDS_PATH = `${HOME_PATH}/diamonds`
 const CUSTOMIZE_PATH = `${HOME_PATH}/customize`
 const ABOUT_PATH = `${HOME_PATH}/about`
+const CHECKOUT_PATH = `${HOME_PATH}/checkout`
+
+// Parses a price string like "$1,999.00" into a number.
+const parsePriceValue = (priceString) => {
+  const cleaned = priceString.replace(/[^0-9.]/g, '')
+  return parseFloat(cleaned) || 0
+}
 
 // Helper function to get relative path for history API
 const getFullPath = (path) => {
@@ -336,8 +344,12 @@ function App() {
     if (relativePath === '/about' || relativePath === `${HOME_PATH}/about`) {
       return ABOUT_PATH
     }
+    if (relativePath === '/checkout' || relativePath === `${HOME_PATH}/checkout`) {
+      return CHECKOUT_PATH
+    }
     return HOME_PATH
   })
+  const [cartItems, setCartItems] = useState([])
   const [pendingSection, setPendingSection] = useState(null)
   const [overlayStep, setOverlayStep] = useState('welcome')
   const [signupEmail, setSignupEmail] = useState('')
@@ -393,6 +405,8 @@ function App() {
         setCurrentPath(CUSTOMIZE_PATH)
       } else if (relativePath === '/about' || relativePath === `${HOME_PATH}/about`) {
         setCurrentPath(ABOUT_PATH)
+      } else if (relativePath === '/checkout' || relativePath === `${HOME_PATH}/checkout`) {
+        setCurrentPath(CHECKOUT_PATH)
       } else {
         setCurrentPath(HOME_PATH)
       }
@@ -474,6 +488,7 @@ function App() {
       [DIAMONDS_PATH]: '/diamonds',
       [CUSTOMIZE_PATH]: '/customize',
       [ABOUT_PATH]: '/about',
+      [CHECKOUT_PATH]: '/checkout',
     }
     const fullPath = getFullPath(pathMap[path] || '/')
     if (window.location.pathname !== fullPath) {
@@ -508,6 +523,11 @@ function App() {
 
     if (sectionId === 'about-page') {
       navigateToPath(ABOUT_PATH)
+      return
+    }
+
+    if (sectionId === 'checkout') {
+      navigateToPath(CHECKOUT_PATH)
       return
     }
 
@@ -795,11 +815,89 @@ function App() {
   const isDiamondsPage = currentPath === DIAMONDS_PATH
   const isCustomizePage = currentPath === CUSTOMIZE_PATH
   const isAboutPage = currentPath === ABOUT_PATH
+  const isCheckoutPage = currentPath === CHECKOUT_PATH
+
+  // Cart helper values for the Navbar.
+  const cartCount = cartItems.reduce((total, item) => total + item.quantity, 0)
+  const cartSubtotal = cartItems.reduce(
+    (total, item) => total + item.priceValue * item.quantity,
+    0,
+  )
+
+  // Adds a product to the cart or increments its quantity if already present.
+  const handleAddToCart = (product) => {
+    setCartItems((current) => {
+      const existing = current.find((item) => item.id === product.id)
+      if (existing) {
+        return current.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item,
+        )
+      }
+      return [
+        ...current,
+        {
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          priceValue: product.priceValue ?? parsePriceValue(product.price),
+          image: product.image,
+          category: product.category,
+          quantity: 1,
+        },
+      ]
+    })
+  }
+
+  // Increases the quantity of a cart item by one.
+  const handleIncreaseCartItem = (itemId) => {
+    setCartItems((current) =>
+      current.map((item) =>
+        item.id === itemId ? { ...item, quantity: item.quantity + 1 } : item,
+      ),
+    )
+  }
+
+  // Decreases the quantity of a cart item by one. Removes it if the count reaches zero.
+  const handleDecreaseCartItem = (itemId) => {
+    setCartItems((current) =>
+      current
+        .map((item) =>
+          item.id === itemId ? { ...item, quantity: item.quantity - 1 } : item,
+        )
+        .filter((item) => item.quantity > 0),
+    )
+  }
+
+  // Removes a cart item entirely.
+  const handleRemoveCartItem = (itemId) => {
+    setCartItems((current) => current.filter((item) => item.id !== itemId))
+  }
+
+  // Navigates to the checkout page.
+  const handleCheckout = () => {
+    navigateToPath(CHECKOUT_PATH)
+  }
+
+  // Handles checkout submission — clears the cart and goes home.
+  const handleSubmitCheckout = ({ customerName }) => {
+    setCartItems([])
+    setStatusMessage(`Thank you ${customerName}! Your order has been placed.`)
+    navigateToPath(HOME_PATH)
+  }
 
   // Main render: shows the contact page, collection page, or the home page sections.
   return (
     <div className="app-shell bg-[#fcfbf8] text-stone-800">
-      <Navbar onNavigate={scrollToSection} />
+      <Navbar
+        cartCount={cartCount}
+        cartItems={cartItems}
+        cartSubtotal={cartSubtotal}
+        onCheckout={handleCheckout}
+        onDecreaseCartItem={handleDecreaseCartItem}
+        onIncreaseCartItem={handleIncreaseCartItem}
+        onNavigate={scrollToSection}
+        onRemoveCartItem={handleRemoveCartItem}
+      />
 
       {/* Render the dedicated contact page when the route matches. */}
       {isContactPage ? (
@@ -816,19 +914,25 @@ function App() {
       ) : isCollectionsPage ? (
         <>
           {/* Render the standalone collections page when that route is active. */}
-          <CollectionPage onNavigate={scrollToSection} cartItems={[]} onAddToCart={() => {}} />
+          <CollectionPage onNavigate={scrollToSection} cartItems={cartItems} onAddToCart={handleAddToCart} />
         </>
       ) : isDiamondsPage ? (
         <Diamond
-          cartItems={[]}
-          onAddToCart={() => {}}
-          onCheckout={() => {}}
+          cartItems={cartItems}
+          onAddToCart={handleAddToCart}
+          onCheckout={handleCheckout}
           onNavigate={scrollToSection}
         />
       ) : isCustomizePage ? (
         <Customize onNavigate={scrollToSection} />
       ) : isAboutPage ? (
         <AboutUs onNavigate={scrollToSection} />
+      ) : isCheckoutPage ? (
+        <Checkout
+          cartItems={cartItems}
+          onNavigate={scrollToSection}
+          onSubmitCheckout={handleSubmitCheckout}
+        />
       ) : (
         <main className="mx-auto w-full max-w-[1280px] px-6 pb-[25vh] pt-[12vh] sm:px-10 lg:px-16">
           {/* The welcome/auth overlay appears on top of the home page until dismissed. */}
